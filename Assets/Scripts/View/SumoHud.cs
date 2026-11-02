@@ -97,7 +97,7 @@ namespace SumoGame
             call.Set(game.Paused ? "" : CallFor(game));
             p1Prompt.MoveTo(new Vector2(single ? 0.5f : 0.25f, 0.06f));
             p1Prompt.Set(game.Paused ? "" : PromptFor(sim, sim.Fighters[0], "A", "D", "Space", "Shift"));
-            p2Prompt.Set(game.Paused || single ? "" : PromptFor(sim, sim.Fighters[1], "J", "L", "I", "K"));
+            p2Prompt.Set(game.Paused || single ? "" : PromptFor(sim, sim.Fighters[1], "Left", "Right", "Up", "Down"));
         }
 
         static void SyncPips(Image[] pips, int count, int score, Color color)

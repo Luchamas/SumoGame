@@ -20,9 +20,9 @@ namespace SumoGame
         static readonly string[,] ControlsTable =
         {
             { "", "P1", "P2", "Gamepad" },
-            { "Walk sideways", "A  D", "J  L", "Left stick" },
-            { "Grab", "Space", "I", "A / Cross" },
-            { "Strike", "Left Shift", "K", "X / Square" },
+            { "Walk sideways", "A  D", "Left  Right", "Left stick" },
+            { "Grab", "Space", "Up", "A / Cross" },
+            { "Strike", "Left Shift", "Down", "X / Square" },
             { "Pause", "Esc", "Esc", "Start" },
         };
 
@@ -209,10 +209,10 @@ namespace SumoGame
         {
             if (current == null) return;
 
-            var up = keyboard.wKey.wasPressedThisFrame || keyboard.iKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame;
-            var down = keyboard.sKey.wasPressedThisFrame || keyboard.kKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame;
-            var left = keyboard.aKey.wasPressedThisFrame || keyboard.jKey.wasPressedThisFrame || keyboard.leftArrowKey.wasPressedThisFrame;
-            var right = keyboard.dKey.wasPressedThisFrame || keyboard.lKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame;
+            var up = keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame;
+            var down = keyboard.sKey.wasPressedThisFrame || keyboard.downArrowKey.wasPressedThisFrame;
+            var left = keyboard.aKey.wasPressedThisFrame || keyboard.leftArrowKey.wasPressedThisFrame;
+            var right = keyboard.dKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame;
 
             var confirm = keyboard.enterKey.wasPressedThisFrame;
             var back = keyboard.escapeKey.wasPressedThisFrame;

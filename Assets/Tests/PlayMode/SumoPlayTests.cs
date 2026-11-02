@@ -264,19 +264,19 @@ public class SumoPlayTests : InputTestFixture
         yield return new WaitUntil(() => p1.State == FighterState.Idle);
 
         var y = p2.Position.y;
-        yield return Hold(Key.L);
+        yield return Hold(Key.RightArrow);
         yield return new WaitUntil(() => p2.State == FighterState.Moving && Mathf.Abs(p2.Position.y - y) > 0.3f);
-        yield return LetGo(Key.L);
+        yield return LetGo(Key.RightArrow);
 
         yield return new WaitUntil(() => p2.State == FighterState.Idle);
-        yield return Hold(Key.K);
+        yield return Hold(Key.DownArrow);
         yield return new WaitUntil(() => p2.IsStriking);
-        yield return LetGo(Key.K);
+        yield return LetGo(Key.DownArrow);
 
         yield return new WaitUntil(() => p2.State == FighterState.Idle);
-        yield return Hold(Key.I);
+        yield return Hold(Key.UpArrow);
         yield return new WaitUntil(() => p2.State == FighterState.GrabStartup || p2.IsLocked);
-        yield return LetGo(Key.I);
+        yield return LetGo(Key.UpArrow);
     }
 
     [UnityTest, Timeout(30000)]
@@ -328,9 +328,9 @@ public class SumoPlayTests : InputTestFixture
         var p2 = game.Sim.Fighters[1];
 
         yield return Hold(Key.A);
-        yield return Hold(Key.I);
+        yield return Hold(Key.UpArrow);
         yield return new WaitUntil(() => p2.State == FighterState.Recovering);
-        yield return LetGo(Key.I);
+        yield return LetGo(Key.UpArrow);
         yield return LetGo(Key.A);
         yield return new WaitForSeconds(0.35f);
         yield return Shot("13_whiff");
@@ -383,7 +383,7 @@ public class SumoPlayTests : InputTestFixture
     {
         yield return StageExchange();
         yield return Hold(Key.Space);
-        yield return Hold(Key.I);
+        yield return Hold(Key.UpArrow);
         yield return CaptureSequence("grab_vs_grab");
         Assert.False(game.Sim.Fighters[0].IsLocked);
         Assert.False(game.Sim.Fighters[1].IsLocked);
@@ -394,7 +394,7 @@ public class SumoPlayTests : InputTestFixture
     {
         yield return StageExchange();
         var p1 = game.Sim.Fighters[0];
-        yield return Hold(Key.K);
+        yield return Hold(Key.DownArrow);
         yield return new WaitUntil(() => game.Sim.Fighters[1].IsStriking);
         yield return Hold(Key.Space);
         yield return CaptureSequence("strike_vs_grab");
@@ -407,7 +407,7 @@ public class SumoPlayTests : InputTestFixture
         yield return StageExchange();
         yield return Hold(Key.A);
         yield return new WaitUntil(() => game.Sim.Fighters[0].IsSidewalking);
-        yield return Tap(Key.I);
+        yield return Tap(Key.UpArrow);
         yield return CaptureSequence("grab_vs_sidewalk");
         Assert.False(game.Sim.Fighters[1].IsLocked);
     }

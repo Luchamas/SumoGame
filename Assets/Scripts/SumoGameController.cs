@@ -7,7 +7,7 @@ namespace SumoGame
     public readonly struct PlayerKeys
     {
         public static readonly PlayerKeys P1 = new PlayerKeys(Key.A, Key.D, Key.Space, Key.LeftShift);
-        public static readonly PlayerKeys P2 = new PlayerKeys(Key.J, Key.L, Key.I, Key.K);
+        public static readonly PlayerKeys P2 = new PlayerKeys(Key.LeftArrow, Key.RightArrow, Key.UpArrow, Key.DownArrow);
 
         readonly Key left, right, grab, strike;
 
