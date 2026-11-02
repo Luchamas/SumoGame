@@ -1,0 +1,5 @@
+{
+    "name": "SumoGame",
+    "references": ["Unity.InputSystem", "UnityEngine.UI"],
+    "autoReferenced": true
+}
