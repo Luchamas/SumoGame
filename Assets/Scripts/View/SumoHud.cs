@@ -14,7 +14,7 @@ namespace SumoGame
         const float PromptTime = 3f;
 
         GameObject root, divider;
-        Text p1Label, p2Label, call, p1Prompt, p2Prompt;
+        UiKit.Banner p1Label, p2Label, call, p1Prompt, p2Prompt;
         Image[] p1Pips, p2Pips;
 
         public void Build()
@@ -42,24 +42,10 @@ namespace SumoGame
             p1Pips = BuildPips(-1f);
             p2Pips = BuildPips(1f);
 
-            p1Prompt = BuildPrompt(0.25f);
-            p2Prompt = BuildPrompt(0.75f);
-
-            call = UiKit.Text("Call", root.transform, 104, TextAnchor.MiddleCenter, UiKit.Paper);
-            UiKit.Place(call.rectTransform, new Vector2(0.5f, 0.74f), new Vector2(1600f, 300f), Vector2.zero);
-            var outline = call.gameObject.AddComponent<Outline>();
-            outline.effectColor = UiKit.Ink;
-            outline.effectDistance = new Vector2(5f, -5f);
-        }
-
-        Text BuildPrompt(float x)
-        {
-            var text = UiKit.Text("Prompt", root.transform, 36, TextAnchor.MiddleCenter, UiKit.Paper);
-            UiKit.Place(text.rectTransform, new Vector2(x, 0.06f), new Vector2(900f, 56f), Vector2.zero);
-            var outline = text.gameObject.AddComponent<Outline>();
-            outline.effectColor = UiKit.Ink;
-            outline.effectDistance = new Vector2(3f, -3f);
-            return text;
+            var centre = new Vector2(0.5f, 0.5f);
+            p1Prompt = new UiKit.Banner("Prompt", root.transform, UiKit.Body, 34, UiKit.Paper, new Vector2(0.25f, 0.06f), centre, Vector2.zero);
+            p2Prompt = new UiKit.Banner("Prompt", root.transform, UiKit.Body, 34, UiKit.Paper, new Vector2(0.75f, 0.06f), centre, Vector2.zero);
+            call = new UiKit.Banner("Call", root.transform, UiKit.Display, 120, UiKit.Paper, new Vector2(0.5f, 0.72f), centre, Vector2.zero);
         }
 
         /// <summary>Only what can be pressed right now, as the original minigame does.</summary>
@@ -75,14 +61,11 @@ namespace SumoGame
             return $"< {left}   {right} >     {grabPrompt}{strike}: Strike";
         }
 
-        Text BuildLabel(Color color, float side)
+        UiKit.Banner BuildLabel(Color color, float side)
         {
-            var anchor = new Vector2(side < 0f ? 0f : 1f, 1f);
-            var text = UiKit.Text("Label", root.transform, 38, side < 0f ? TextAnchor.UpperLeft : TextAnchor.UpperRight, color);
-            text.fontStyle = FontStyle.Bold;
-            UiKit.Place(text.rectTransform, anchor, new Vector2(560f, 56f), new Vector2(-side * 300f, -56f));
-            text.gameObject.AddComponent<Outline>().effectColor = UiKit.Ink;
-            return text;
+            var corner = side < 0f ? 0f : 1f;
+            var offset = new Vector2(-side * 24f, -24f);
+            return new UiKit.Banner("Label", root.transform, UiKit.Body, 36, color, new Vector2(corner, 1f), new Vector2(corner, 1f), offset);
         }
 
         Image[] BuildPips(float side)
@@ -92,7 +75,7 @@ namespace SumoGame
             for (var i = 0; i < pips.Length; i++)
             {
                 pips[i] = UiKit.Image("Pip", root.transform, EmptyPip);
-                UiKit.Place(pips[i].rectTransform, anchor, new Vector2(36f, 36f), new Vector2(-side * (42f + i * 50f), -112f));
+                UiKit.Place(pips[i].rectTransform, anchor, new Vector2(36f, 36f), new Vector2(-side * (42f + i * 50f), -116f));
             }
             return pips;
         }
@@ -106,15 +89,15 @@ namespace SumoGame
             var single = game.Mode == GameMode.Singleplayer;
 
             divider.SetActive(!single);
-            p1Label.text = single ? $"YOU   Wins {game.Run.Wins}   Best {Mathf.Max(GameSettings.BestRun, game.Run.Wins)}" : "P1";
-            p2Label.text = single ? game.Run.Rival.Name.ToUpperInvariant() : "P2";
+            p1Label.Set(single ? $"YOU   Wins {game.Run.Wins}   Best {Mathf.Max(GameSettings.BestRun, game.Run.Wins)}" : "P1");
+            p2Label.Set(single ? game.Run.Rival.Name.ToUpperInvariant() : "P2");
 
             SyncPips(p1Pips, sim.Rules.RoundsToWin, sim.Fighters[0].Score, P1Color);
             SyncPips(p2Pips, sim.Rules.RoundsToWin, sim.Fighters[1].Score, P2Color);
-            call.text = game.Paused ? "" : CallFor(game);
-            p1Prompt.rectTransform.anchorMin = p1Prompt.rectTransform.anchorMax = new Vector2(single ? 0.5f : 0.25f, 0.06f);
-            p1Prompt.text = game.Paused ? "" : PromptFor(sim, sim.Fighters[0], "A", "D", "Space", "Shift");
-            p2Prompt.text = game.Paused || single ? "" : PromptFor(sim, sim.Fighters[1], "J", "L", "I", "K");
+            call.Set(game.Paused ? "" : CallFor(game));
+            p1Prompt.MoveTo(new Vector2(single ? 0.5f : 0.25f, 0.06f));
+            p1Prompt.Set(game.Paused ? "" : PromptFor(sim, sim.Fighters[0], "A", "D", "Space", "Shift"));
+            p2Prompt.Set(game.Paused || single ? "" : PromptFor(sim, sim.Fighters[1], "J", "L", "I", "K"));
         }
 
         static void SyncPips(Image[] pips, int count, int score, Color color)
@@ -130,7 +113,7 @@ namespace SumoGame
         {
             var sim = game.Sim;
             var single = game.Mode == GameMode.Singleplayer;
-            var hakkeyoi = single ? $"HAKKEYOI...\n<size=46>vs {game.Run.Rival.Name}</size>" : "HAKKEYOI...";
+            var hakkeyoi = single ? $"HAKKEYOI...\n<size=52>VS {game.Run.Rival.Name.ToUpperInvariant()}</size>" : "HAKKEYOI...";
             switch (sim.Phase)
             {
                 case MatchPhase.Intro:
@@ -143,10 +126,10 @@ namespace SumoGame
                     if (single) return sim.RoundWinner == 0 ? "YOU TAKE THE ROUND" : "YOU LOSE THE ROUND";
                     return $"P{sim.RoundWinner + 1} TAKES THE ROUND";
                 case MatchPhase.MatchOver:
-                    if (!single) return $"P{sim.MatchWinner + 1} IS YOKOZUNA!\n<size=46>ENTER to rematch   ESC for menu</size>";
-                    if (game.Run.Complete) return "YOU ARE YOKOZUNA!\n<size=46>Every rival defeated\nENTER to start a new run   ESC for menu</size>";
-                    var best = game.NewBest ? "New best!" : $"Best {GameSettings.BestRun}";
-                    return $"RUN OVER\n<size=46>{game.Run.Wins} wins   {best}\nENTER to try again   ESC for menu</size>";
+                    if (!single) return $"P{sim.MatchWinner + 1} IS YOKOZUNA!\n<size=46>ENTER TO REMATCH     ESC FOR MENU</size>";
+                    if (game.Run.Complete) return "YOU ARE YOKOZUNA!\n<size=46>EVERY RIVAL DEFEATED\nENTER FOR A NEW RUN     ESC FOR MENU</size>";
+                    var best = game.NewBest ? "NEW BEST!" : $"BEST {GameSettings.BestRun}";
+                    return $"RUN OVER\n<size=46>{game.Run.Wins} WINS     {best}\nENTER TO TRY AGAIN     ESC FOR MENU</size>";
                 default:
                     return "";
             }

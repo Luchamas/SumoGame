@@ -29,6 +29,7 @@ namespace SumoGame
         const string CreditsText =
             "<b>Sumo Game</b>\n\n" +
             "Arena: \"sumo arena\" by unForastero, CC0, OpenGameArt.org\n" +
+            "Fonts: Bebas Neue and Barlow Condensed, SIL Open Font License\n" +
             "Made with Unity 6";
 
         class Item
@@ -108,7 +109,7 @@ namespace SumoGame
                 {
                     var cell = UiKit.Text("Cell", page.Root.transform, 40, TextAnchor.MiddleCenter, UiKit.Paper);
                     cell.text = ControlsTable[row, column];
-                    cell.fontStyle = row == 0 || column == 0 ? FontStyle.Bold : FontStyle.Normal;
+                    if (row == 0 || column == 0) cell.font = UiKit.Display;
                     var offset = new Vector2((column - 1.5f) * columnWidth, -row * rowHeight);
                     UiKit.Place(cell.rectTransform, new Vector2(0.5f, 0.72f), new Vector2(columnWidth, rowHeight), offset);
                 }
@@ -122,7 +123,7 @@ namespace SumoGame
 
             var text = UiKit.Text("Heading", panel.transform, size, TextAnchor.MiddleCenter, UiKit.Paper);
             text.text = heading;
-            text.fontStyle = FontStyle.Bold;
+            text.font = UiKit.Display;
             UiKit.Place(text.rectTransform, new Vector2(0.5f, 0.84f), new Vector2(1400f, 200f), Vector2.zero);
 
             if (body != null)
@@ -150,7 +151,8 @@ namespace SumoGame
             {
                 var item = page.Items[i];
                 var row = i;
-                item.Text = UiKit.Text("Item", page.Root.transform, 54, TextAnchor.MiddleCenter, UiKit.Paper);
+                item.Text = UiKit.Text("Item", page.Root.transform, 60, TextAnchor.MiddleCenter, UiKit.Paper);
+                item.Text.font = UiKit.Display;
                 item.Text.raycastTarget = true;
                 UiKit.Place(item.Text.rectTransform, new Vector2(0.5f, top), new Vector2(900f, rowHeight), new Vector2(0f, -i * rowHeight));
 

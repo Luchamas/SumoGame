@@ -90,9 +90,10 @@ namespace SumoGame
                     p.Crouch = 0.8f;
                     p.Lean = 8f + winning * 12f;
                     if (sim.Shoving && self.State == FighterState.Pushing) p.Lean += 14f;
-                    p.ArmL = p.ArmR = 82f;
-                    p.SpreadL = p.SpreadR = 12f;
-                    p.Elbow = 25f;
+                    // Arms reach round the other body, so the two read as locked together.
+                    p.ArmL = p.ArmR = 74f;
+                    p.SpreadL = p.SpreadR = 2f;
+                    p.Elbow = 58f;
                     p.Stride = Mathf.Sin(clock * 16f) * 0.6f;
                     p.Roll = p.Stride * 5f;
                     break;
@@ -134,11 +135,16 @@ namespace SumoGame
                     break;
 
                 case FighterState.Striking:
-                    p.ArmR = 100f;
-                    p.SpreadR = 2f;
-                    p.Elbow = 0f;
-                    p.Twist = -22f;
-                    p.Lean += 8f;
+                    PoseStrike(ref p, sim.Rules, self.StateTime);
+                    break;
+
+                case FighterState.Recoiling:
+                    // Thrown back with arms flung out, as when two grabs meet in the original.
+                    p.Crouch = 0.3f;
+                    p.Lean = -22f;
+                    p.ArmL = p.ArmR = 45f;
+                    p.SpreadL = p.SpreadR = 72f;
+                    p.Elbow = 12f;
                     break;
 
                 case FighterState.Victory:
@@ -151,6 +157,36 @@ namespace SumoGame
             }
 
             return p;
+        }
+
+        /// <summary>Winds up, swings across, then follows through off balance.</summary>
+        static void PoseStrike(ref Pose p, SumoRules rules, float time)
+        {
+            if (time < rules.StrikeStartup)
+            {
+                p.ArmR = 135f;
+                p.SpreadR = 40f;
+                p.Elbow = 50f;
+                p.Twist = 26f;
+                p.Lean = 2f;
+            }
+            else if (time < rules.StrikeStartup + rules.StrikeActive)
+            {
+                p.ArmR = 95f;
+                p.SpreadR = 0f;
+                p.Elbow = 0f;
+                p.Twist = -24f;
+                p.Lean = 18f;
+            }
+            else
+            {
+                p.ArmR = 112f;
+                p.SpreadR = 32f;
+                p.ArmL = 15f;
+                p.Elbow = 0f;
+                p.Twist = -38f;
+                p.Lean = 22f;
+            }
         }
 
         /// <summary>0 while waiting at the ring edge in the intro, 1 once at the start line.</summary>

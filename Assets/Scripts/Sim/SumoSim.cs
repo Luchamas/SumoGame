@@ -11,12 +11,12 @@ namespace SumoGame
 
     public enum FighterState
     {
-        Idle, Moving, GrabStartup, Recovering, Striking, Stunned, Pushing, Grabbed, Driving, Reeling, Falling, Victory,
+        Idle, Moving, GrabStartup, Recovering, Recoiling, Striking, Stunned, Pushing, Grabbed, Driving, Reeling, Falling, Victory,
     }
 
     public enum MatchPhase { Intro, Countdown, Fighting, RoundOver, MatchOver }
 
-    public enum SumoImpact { Strike, Grab, Shove, Drive, Whiff, Clash, RingOut }
+    public enum SumoImpact { Strike, Grab, Shove, Drive, Whiff, Ducked, Clash, RingOut }
 
     public class Fighter
     {
@@ -27,6 +27,7 @@ namespace SumoGame
         public Vector2 LungeDirection;
 
         public bool StrikeSpent;
+        public bool StrikeDucked;
         public float RecoveryTime;
         public float StunImmunity;
         public float StruggleCooldown;
@@ -86,8 +87,9 @@ namespace SumoGame
         public float LungeSpeed = 4f;
         public float GrabReach = 1.4f;
         public float WhiffRecovery = 0.75f;
-        public float WhiffStumble = 3.2f;
-        public float ClashRecovery = 0.3f;
+        public float WhiffStumble = 5f;
+        public float RecoilTime = 0.7f;
+        public float RecoilSpeed = 3.2f;
 
         public float LockDistance = 1.35f;
         public float MinHoldBeforeEscape = 0.5f;
@@ -115,6 +117,7 @@ namespace SumoGame
         public float StunTime = 0.8f;
         public float StunImmunity = 0.5f;
         public float StrikeKnockback = 2.4f;
+        public float DuckedStrikeLag = 0.3f;
         public float KnockbackDecay = 8f;
     }
 
@@ -295,6 +298,7 @@ namespace SumoGame
             if (strikePressed)
             {
                 self.StrikeSpent = false;
+                self.StrikeDucked = false;
                 self.Enter(FighterState.Striking);
             }
             else if (grabPressed && self.RegrabCooldown <= 0f && Vector2.Distance(self.Position, other.Position) <= Rules.GrabRange)
@@ -349,7 +353,16 @@ namespace SumoGame
         {
             if (!self.IsStriking || self.StrikeSpent) return false;
             if (self.StateTime < Rules.StrikeStartup || self.StateTime >= Rules.StrikeStartup + Rules.StrikeActive) return false;
-            if (other.State == FighterState.GrabStartup || other.IsLocked) return false;
+            if (other.IsLocked) return false;
+
+            // The grab drives in low, so the strike passes overhead.
+            if (other.State == FighterState.GrabStartup)
+            {
+                self.StrikeSpent = true;
+                self.StrikeDucked = true;
+                Raise(SumoImpact.Ducked);
+                return false;
+            }
 
             var reach = other.IsSidewalking ? Rules.StrikeReachVsSidewalk : Rules.StrikeReach;
             return Vector2.Distance(self.Position, other.Position) <= reach;
@@ -375,23 +388,35 @@ namespace SumoGame
             var aDone = a.State == FighterState.GrabStartup && a.StateTime >= Rules.GrabStartup;
             var bDone = b.State == FighterState.GrabStartup && b.StateTime >= Rules.GrabStartup;
 
-            if (aDone && bDone)
+            // Two grabs meeting are a draw, whichever landed first.
+            var bothLunging = a.State == FighterState.GrabStartup && b.State == FighterState.GrabStartup;
+            if (bothLunging && (aDone || bDone))
             {
-                Recover(a, Rules.ClashRecovery);
-                Recover(b, Rules.ClashRecovery);
-                var apart = (b.Position - a.Position).normalized * Rules.StrikeKnockback;
-                a.Knockback = -apart;
-                b.Knockback = apart;
+                ThrowApart(a, b);
                 Raise(SumoImpact.Clash);
             }
-            else if (aDone)
+            else if (aDone && !b.IsStriking)
             {
                 FinishLunge(a, b);
             }
-            else if (bDone)
+            else if (bDone && !a.IsStriking)
             {
                 FinishLunge(b, a);
             }
+        }
+
+        void ThrowApart(Fighter a, Fighter b)
+        {
+            var apart = (b.Position - a.Position).normalized * Rules.RecoilSpeed;
+            Recoil(a, -apart);
+            Recoil(b, apart);
+        }
+
+        void Recoil(Fighter f, Vector2 push)
+        {
+            f.RecoveryTime = Rules.RecoilTime;
+            f.Enter(FighterState.Recoiling);
+            f.Knockback = push;
         }
 
         void FinishLunge(Fighter self, Fighter other)
@@ -457,8 +482,7 @@ namespace SumoGame
 
             if (HoldTime >= Rules.MaxHold)
             {
-                attacker.Enter(FighterState.Idle);
-                defender.Enter(FighterState.Idle);
+                ThrowApart(attacker, defender);
                 return;
             }
 
@@ -503,7 +527,8 @@ namespace SumoGame
         void Move(Fighter self, Fighter other, float dt)
         {
             // A lunge is committed: it keeps facing the way it went until the recovery is over.
-            var committed = self.State == FighterState.GrabStartup || self.State == FighterState.Recovering;
+            var thrown = self.State == FighterState.Recovering || self.State == FighterState.Recoiling;
+            var committed = self.State == FighterState.GrabStartup || thrown;
             var toOther = other.Position - self.Position;
             if (toOther.sqrMagnitude > 0.0001f && !committed) Turn(self, toOther.normalized, dt);
 
@@ -518,7 +543,8 @@ namespace SumoGame
                     break;
 
                 case FighterState.Striking:
-                    if (self.StateTime >= Rules.StrikeStartup + Rules.StrikeActive + Rules.StrikeRecovery)
+                    var lag = self.StrikeDucked ? Rules.DuckedStrikeLag : 0f;
+                    if (self.StateTime >= Rules.StrikeStartup + Rules.StrikeActive + Rules.StrikeRecovery + lag)
                         self.Enter(FighterState.Idle);
                     break;
 
@@ -531,6 +557,7 @@ namespace SumoGame
                     break;
 
                 case FighterState.Recovering:
+                case FighterState.Recoiling:
                     if (self.StateTime >= self.RecoveryTime) self.Enter(FighterState.Idle);
                     break;
             }
@@ -539,7 +566,7 @@ namespace SumoGame
             self.Knockback = Vector2.MoveTowards(self.Knockback, Vector2.zero, Rules.KnockbackDecay * dt);
 
             // Stumbling past after a miss stops at the rope, so a dodge is not an instant win.
-            if (self.State == FighterState.Recovering) KeepInsideRing(self);
+            if (thrown) KeepInsideRing(self);
         }
 
         void Turn(Fighter self, Vector2 target, float dt)

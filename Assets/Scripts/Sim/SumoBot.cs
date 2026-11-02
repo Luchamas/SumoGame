@@ -31,7 +31,7 @@ namespace SumoGame
                 ReadChance = Mathf.Lerp(0.15f, 0.85f, t),
                 ThinkTime = Mathf.Lerp(1.5f, 0.4f, t),
                 MashRate = Mathf.Lerp(1.5f, 3.9f, Mathf.Sqrt(t)),
-                GrabFocus = Mathf.Lerp(0.5f, 0.85f, t),
+                GrabFocus = Mathf.Lerp(0.5f, 0.65f, t),
                 Adaptation = Mathf.Clamp01(0.1f + t * 3.6f),
             };
         }

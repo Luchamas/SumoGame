@@ -73,6 +73,9 @@ namespace SumoGame
                 case SumoImpact.Clash:
                     Emit(point, 20, Spark, 3.5f, 0.36f);
                     break;
+                case SumoImpact.Ducked:
+                    Emit(point + Vector3.up * 0.3f, 10, Spark, 2f, 0.2f);
+                    break;
                 case SumoImpact.Shove:
                     Emit(new Vector3(where.x, 0.1f, where.y), 10, Dust, 1.6f, 0.45f);
                     break;

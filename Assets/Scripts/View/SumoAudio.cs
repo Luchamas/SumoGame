@@ -44,6 +44,7 @@ namespace SumoGame
                 case SumoImpact.Shove: return Tone(0.16f, 90f, 0.7f, 0.2f, 22f);
                 case SumoImpact.Drive: return Tone(0.45f, 70f, 0.9f, 0.3f, 7f);
                 case SumoImpact.Whiff: return Tone(0.28f, 240f, 0.05f, 0.5f, 9f);
+                case SumoImpact.Ducked: return Tone(0.22f, 320f, 0.05f, 0.45f, 12f);
                 case SumoImpact.Clash: return Tone(0.16f, 180f, 0.6f, 0.5f, 26f);
                 default: return Tone(0.6f, 55f, 0.95f, 0.45f, 5f);
             }

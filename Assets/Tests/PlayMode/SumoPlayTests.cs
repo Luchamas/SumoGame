@@ -358,6 +358,70 @@ public class SumoPlayTests : InputTestFixture
         yield return Shot("15_spark3");
     }
 
+    // Stages an exchange in one full-screen view, sized like Singleplayer, like the footage.
+    IEnumerator StageExchange()
+    {
+        yield return StartVersus();
+        yield return WaitForEngage();
+        game.P2Camera.SetView(false, new Rect(0f, 0f, 1f, 1f), 58f);
+        game.P1Camera.SetView(true, new Rect(0f, 0f, 1f, 1f), 58f);
+        game.P2View.transform.localScale = Vector3.one * SumoGameController.RivalScale;
+        yield return new WaitForSeconds(0.9f);
+    }
+
+    IEnumerator CaptureSequence(string name)
+    {
+        for (var i = 0; i < 8; i++)
+        {
+            yield return Shot($"ex_{name}_{i}");
+            yield return new WaitForSeconds(0.14f);
+        }
+    }
+
+    [UnityTest, Timeout(30000)]
+    public IEnumerator ExchangeGrabVersusGrab()
+    {
+        yield return StageExchange();
+        yield return Hold(Key.Space);
+        yield return Hold(Key.I);
+        yield return CaptureSequence("grab_vs_grab");
+        Assert.False(game.Sim.Fighters[0].IsLocked);
+        Assert.False(game.Sim.Fighters[1].IsLocked);
+    }
+
+    [UnityTest, Timeout(30000)]
+    public IEnumerator ExchangeStrikeVersusGrab()
+    {
+        yield return StageExchange();
+        var p1 = game.Sim.Fighters[0];
+        yield return Hold(Key.K);
+        yield return new WaitUntil(() => game.Sim.Fighters[1].IsStriking);
+        yield return Hold(Key.Space);
+        yield return CaptureSequence("strike_vs_grab");
+        Assert.True(p1.IsLocked, "the grab should land after the swing");
+    }
+
+    [UnityTest, Timeout(30000)]
+    public IEnumerator ExchangeGrabVersusSidewalk()
+    {
+        yield return StageExchange();
+        yield return Hold(Key.A);
+        yield return new WaitUntil(() => game.Sim.Fighters[0].IsSidewalking);
+        yield return Tap(Key.I);
+        yield return CaptureSequence("grab_vs_sidewalk");
+        Assert.False(game.Sim.Fighters[1].IsLocked);
+    }
+
+    [UnityTest, Timeout(30000)]
+    public IEnumerator ExchangeGrabEnding()
+    {
+        yield return StageExchange();
+        yield return Tap(Key.Space);
+        yield return new WaitUntil(() => game.Sim.Fighters[0].IsLocked);
+        yield return new WaitUntil(() => game.Sim.HoldTime > game.Sim.Rules.MaxHold - 0.15f);
+        yield return CaptureSequence("grab_break");
+    }
+
     void AssertCentredBehind(SumoCamera view, WrestlerView own, WrestlerView other, float clearance)
     {
         var camera = view.GetComponent<Camera>();

@@ -14,12 +14,16 @@ namespace SumoGame
         public float LookAhead = 1.3f;
         public float LookHeight = 1.1f;
         public float TurnRate = 7f;
+        public float RoundEndBack = 1.8f;
+        public float RoundEndUp = 1.5f;
+        public float RoundEndRate = 3f;
         public float FollowRate = 6f;
         public float ShakeDecay = 7f;
         public Vector3 WideShot = new Vector3(0f, 5.2f, -10.5f);
 
         Vector3 focus;
         Vector3 direction = Vector3.right;
+        float wide;
         float shake;
 
         public void Shake(float amount)
@@ -54,8 +58,13 @@ namespace SumoGame
             direction = Vector3.Slerp(direction, facing, turn).normalized;
             shake = Mathf.MoveTowards(shake, 0f, ShakeDecay * dt * Mathf.Max(shake, 0.05f));
 
-            var position = focus - direction * BehindDistance + Vector3.up * BehindHeight;
-            var look = focus + direction * LookAhead + Vector3.up * LookHeight;
+            // When a round ends, draw back to look at both wrestlers and show the fall.
+            var over = sim.Phase == MatchPhase.RoundOver || sim.Phase == MatchPhase.MatchOver;
+            wide = dt <= 0f ? 0f : Mathf.MoveTowards(wide, over ? 1f : 0f, RoundEndRate * dt);
+
+            var position = focus - direction * (BehindDistance + RoundEndBack * wide) + Vector3.up * (BehindHeight + RoundEndUp * wide);
+            var middle = new Vector3(sim.Fighters[0].Position.x + sim.Fighters[1].Position.x, 0f, sim.Fighters[0].Position.y + sim.Fighters[1].Position.y) * 0.5f;
+            var look = Vector3.Lerp(focus + direction * LookAhead, middle, wide) + Vector3.up * LookHeight;
             var rotation = Quaternion.LookRotation(look - position);
 
             if (sim.Phase == MatchPhase.Intro)

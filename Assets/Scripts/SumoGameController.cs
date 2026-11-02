@@ -42,6 +42,7 @@ namespace SumoGame
         const float FullFieldOfView = 58f;
         const float SplitFieldOfView = 66f;
         const float StruggleRumble = 0.35f;
+        public const float RivalScale = 1.3f;
         const float StrikeHitStop = 0.07f;
         const float DriveHitStop = 0.1f;
         static readonly Rect FullView = new Rect(0f, 0f, 1f, 1f);
@@ -117,6 +118,7 @@ namespace SumoGame
             rules.RoundsToWin = 2;
             Run = new SumoRun();
             NewBest = false;
+            P2View.transform.localScale = Vector3.one * RivalScale;
             NextBotFight();
             BeginPlay(FullView, FullFieldOfView, false);
         }
@@ -126,6 +128,7 @@ namespace SumoGame
             Mode = GameMode.Versus;
             rules.RoundsToWin = GameSettings.VersusRounds;
             Run = null;
+            P2View.transform.localScale = Vector3.one;
             Sim.StartMatch();
             BeginPlay(LeftView, SplitFieldOfView, true);
         }

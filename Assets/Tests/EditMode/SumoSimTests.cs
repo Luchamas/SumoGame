@@ -158,10 +158,11 @@ public class SumoSimTests
         Lock();
         Run(sim.Rules.MaxHold + 0.1f, None, None);
         Assert.False(p1.IsLocked);
+        Run(sim.Rules.RecoilTime, None, None);
         sim.Step(Dt, Grab, None);
         Assert.AreNotEqual(FighterState.GrabStartup, p1.State, "still on cooldown");
 
-        Run(sim.Rules.RegrabDelay + 0.1f, None, None);
+        Run(sim.Rules.RegrabDelay, None, None);
         sim.Step(Dt, Grab, None);
         Assert.AreEqual(FighterState.GrabStartup, p1.State);
     }
@@ -170,7 +171,9 @@ public class SumoSimTests
     public void TheDefenderCanGrabBackStraightAfterAGrab()
     {
         Lock();
-        Run(sim.Rules.MaxHold + 0.1f, None, None);
+        Run(sim.Rules.MaxHold + sim.Rules.RecoilTime + 0.1f, None, None);
+        Assert.Greater(p1.RegrabCooldown, 0f);
+        InRange();
         sim.Step(Dt, None, Grab);
         Assert.AreEqual(FighterState.GrabStartup, p2.State);
     }
@@ -206,14 +209,20 @@ public class SumoSimTests
     }
 
     [Test]
-    public void TheGrabBreaksAtTheTimeLimitIfNobodyWins()
+    public void TheGrabThrowsBothApartAtTheTimeLimitIfNobodyWins()
     {
         Lock();
         Mash(4f, 4f, 4f);
         Assert.False(p1.IsLocked);
-        Assert.AreEqual(FighterState.Idle, p1.State);
-        Assert.AreEqual(FighterState.Idle, p2.State);
+        Assert.AreEqual(FighterState.Recoiling, p1.State);
+        Assert.AreEqual(FighterState.Recoiling, p2.State);
         Assert.AreEqual(sim.Rules.MaxHold, sim.HoldTime, 0.05f);
+
+        var gap = Vector2.Distance(p1.Position, p2.Position);
+        Run(0.4f, None, None);
+        Assert.Greater(Vector2.Distance(p1.Position, p2.Position), gap + 0.5f);
+        Run(sim.Rules.RecoilTime, None, None);
+        Assert.AreNotEqual(FighterState.Recoiling, p1.State);
     }
 
     [Test]
@@ -582,7 +591,7 @@ public class SumoSimTests
         sim.Step(Dt, Grab, None);
         sim.Step(Dt, None, Strike);
         Assert.AreEqual(FighterState.Striking, p2.State);
-        Run(0.3f, None, None);
+        Run(1.1f, None, None);
         Assert.AreEqual(FighterState.Pushing, p1.State);
         Assert.AreEqual(FighterState.Grabbed, p2.State);
     }
@@ -669,12 +678,49 @@ public class SumoSimTests
     }
 
     [Test]
-    public void SimultaneousGrabsClash()
+    public void SimultaneousGrabsThrowBothApart()
     {
         InRange();
-        Run(0.4f, Grab, Grab);
-        Assert.False(p1.IsLocked);
+        Run(sim.Rules.GrabStartup + 0.05f, Grab, Grab);
+        Assert.AreEqual(FighterState.Recoiling, p1.State);
+        Assert.AreEqual(FighterState.Recoiling, p2.State);
+        var gap = Vector2.Distance(p1.Position, p2.Position);
+        Run(0.3f, None, None);
+        Assert.Greater(Vector2.Distance(p1.Position, p2.Position), gap + 0.3f);
+    }
+
+    [Test]
+    public void GrabsThatOverlapAreStillADraw()
+    {
+        InRange();
+        sim.Step(Dt, Grab, None);
+        Run(0.15f, None, None);
+        sim.Step(Dt, None, Grab);
+        Assert.AreEqual(FighterState.GrabStartup, p2.State);
+        Run(0.15f, None, None);
+        Assert.AreEqual(FighterState.Recoiling, p1.State);
         Assert.False(p2.IsLocked);
+    }
+
+    [Test]
+    public void AStrikeSwingsOverAGrabAndTheGrabLandsAfterIt()
+    {
+        var seen = new System.Collections.Generic.List<SumoImpact>();
+        sim.Impact += (impact, where) => seen.Add(impact);
+
+        InRange();
+        sim.Step(Dt, Grab, None);
+        sim.Step(Dt, None, Strike);
+        Run(sim.Rules.StrikeStartup + Dt * 2f, None, None);
+        Assert.Contains(SumoImpact.Ducked, seen);
+        Assert.AreEqual(FighterState.GrabStartup, p1.State, "still low while the swing passes");
+        Assert.AreEqual(FighterState.Striking, p2.State);
+
+        Run(sim.Rules.StrikeActive + sim.Rules.StrikeRecovery, None, None);
+        Assert.AreEqual(FighterState.GrabStartup, p1.State, "the striker is still overextended");
+        Run(sim.Rules.DuckedStrikeLag + Dt, None, None);
+        Assert.AreEqual(FighterState.Pushing, p1.State);
+        Assert.AreEqual(FighterState.Grabbed, p2.State);
     }
 
     // Matches
