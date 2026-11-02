@@ -1,6 +1,6 @@
 # Sumo Game — Specification
 
-Version 2.1
+Version 2.3
 
 This spec describes the game as built, the reference it is modelled on, and what is still unknown. It replaces version 1.0 and its clarifications. Where the two differ, this version is correct.
 
@@ -50,6 +50,9 @@ Guides describe the wrestlers' options as grab, slap and sidestep. Grab beats sl
 | Break to next neutral after a clinch | Gor 95.9 to 96.4 s, 107.0 to 107.75 s | 0.5 to 0.75 s |
 | Sidestep past a charge | Gor 102.87 to 103.6 s | About 0.7 s |
 | Grab landing after that miss | Gor 103.72 s | About 0.1 s after the miss ends |
+| Two grabs meeting, contact to neutral | Bo 65.56 to 66.36 s | About 0.8 s |
+| Thrown apart at the end of a grab | Bo 38.56 to 39.36 s, 74.27 to 75.02 s | About 0.75 s |
+| Slap ducked by a grab, windup to grab landing | Bo 75.4 to 76.52 s | About 1.1 s |
 
 ### 2.4 Other observations
 
@@ -60,7 +63,11 @@ Guides describe the wrestlers' options as grab, slap and sidestep. Grab beats sl
 - **The camera is low and close.** It sits just above and behind Link, and orbits to stay behind him as the pair rotate.
 - **Opponents are far bigger than Link.** Their upper bodies stay visible over his head, which is how the reference avoids occlusion.
 - **Rounds end from the arms-wide pose.** Gor at 119.5 to 121.5 s and Bo at 76.66 to 79 s both go into that pose and then over the edge. The loser lands flat on their back outside the ring.
-- **A white spark marks contact**, at Bo 67.5 and 76.33 s.
+- **A white spark marks contact**, at Bo 65.56, 67.5 and 76.5 s.
+- **Two grabs are a draw.** A spark, then both are thrown apart, arms flung wide and heads back, and step back to neutral.
+- **A grab ducks a slap.** The grabber crouches low, the slap passes overhead, the slapper is left overextended for about 0.6 seconds, and only then does the grab land.
+- **A grab ends with both thrown apart**, not simply released.
+- **The Mayor is much bigger than Link**, though both are human.
 
 ### 2.5 Not established
 
@@ -72,9 +79,9 @@ Guides describe the wrestlers' options as grab, slap and sidestep. Grab beats sl
 
 | Action | P1 | P2 | Gamepad |
 |---|---|---|---|
-| Walk sideways | A / D | J / L | Left stick |
-| Grab, push or resist | Space | I | South button |
-| Strike | Left Shift | K | West button |
+| Walk sideways | A / D | Left / Right arrows | Left stick |
+| Grab, push or resist | Space | Up arrow | South button |
+| Strike | Left Shift | Down arrow | West button |
 | Pause | Esc | Esc | Start |
 | Confirm menus | Enter | Enter | South button |
 
@@ -108,9 +115,9 @@ There is no forward, backward or dedicated dodge control.
 | Strike | Walking sideways | Grab |
 
 - **Walking sideways beats grab:** a grab misses if the target is walking sideways as it lands. There is no tap input and no dodge state.
-- **Grab beats strike:** a wrestler in grab startup cannot be hit, and drives in low to duck the strike. A grab also catches a strike's recovery.
+- **Grab beats strike:** a wrestler in grab startup cannot be hit, and stays low while the strike passes overhead. The grab lands only once the striker's swing and follow-through have finished, and a ducked strike leaves the striker overextended 0.3 seconds longer. A grab also catches a strike's recovery.
 - **Strike beats walking sideways:** a strike reaches further against someone doing it.
-- **Simultaneous actions:** two strikes stun both wrestlers, and two grabs clash and push both apart.
+- **Simultaneous actions:** two strikes stun both wrestlers. Two grabs are a draw whenever their lunges overlap, not only on the same instant, and both are thrown apart.
 
 A counter earns an opening, not a win. The follow-up grab must still land and push.
 
@@ -142,7 +149,7 @@ A hidden meter starts at 50%. It is never drawn. The wrestlers' lean, the attack
 |---|---|
 | Meter reaches 100% | The finishing drive: 1.25 s in which nobody can act, the defender reels back with arms wide and the attacker follows. The defender is left stunned if still inside. The drive can carry them over the rope |
 | Meter reaches 0%, after at least 0.5 s | The defender is free at once. The attacker recovers for 0.6 s and cannot grab or strike |
-| 3 seconds pass | Both return to neutral |
+| 3 seconds pass | Both are thrown apart, and recover for 0.7 s |
 
 The round ends only when a wrestler crosses the rope. An unresisted grab from the centre leaves the defender near the edge, still inside.
 
@@ -172,6 +179,8 @@ After any grab ends or misses, the attacker cannot grab again for 1.2 seconds. T
 
 ### Feedback
 
+- Strikes wind up, swing across, then follow through off balance.
+- Being thrown apart flings both wrestlers' arms wide with their heads back.
 - A soft spark bursts at the point of contact for strikes, grabs, clashes and the drive, as in the reference. Dust kicks up on shoves and ring-outs.
 - Strikes freeze the fight for 0.07 seconds, and the drive and ring-outs for 0.1 seconds.
 - Placeholder sounds are synthesized at start-up, for each impact, misses and the start of a fight.
@@ -191,6 +200,7 @@ Both modes use the same camera, directly behind the wrestler with them centred o
 - The camera follows the wrestler's facing, so it orbits as they circle.
 - It never zooms or swings to the side during a grab.
 - The opponent's head must stay visible past the wrestler's own, in neutral and in a grab.
+- At the end of a round it draws back and up to frame both wrestlers, so the fall can be seen.
 - Screen shake plays on a stun, and can be turned off.
 
 This replaces the fixed overhead camera in version 1.0.
@@ -215,11 +225,13 @@ A run through ten rivals, each in a best-of-three match: Jonokuchi, Jonidan, San
 - Losing a match ends the run.
 - Beating Yokozuna completes the run.
 - The best run is saved.
+- Rivals are 1.3 times the player's size, as the Mayor is bigger than Link. This is visual only, and does not change reach or strength.
 - Run progress is separate from match rules, so rounds and matches reset without affecting it.
 
 ### 10.2 Versus
 
 - Vertical split screen, each player's camera behind their own wrestler.
+- Both wrestlers are the same size, so neither has a visual advantage.
 - Rounds to win is set in Settings: 1, 2 or 3. The default is 2.
 
 ### 10.3 Menus
@@ -242,7 +254,7 @@ Rivals use the same rules and inputs as players, with their own decision logic. 
 | Odds of reading the right counter | 15% | 85% |
 | Time between decisions | 1.5 s | 0.4 s |
 | Grab presses per second | 1.5 | 3.9, rising quickly in the early ranks |
-| Grab preference in range | 50% | 85% |
+| Grab preference in range | 50% | 65% |
 | Odds of stepping aside from a grab habit | 10% | 100%, reached by the fourth rival |
 
 - **Reading habits:** after two repeated grabs, a rival may step aside early and punish the miss. A strike clears the read, and each miss means it needs fresh evidence.
@@ -254,8 +266,9 @@ All rivals currently look alike and have the same strength. Bigger, stronger ene
 
 ## 12. Technical
 
-- The fight is a state machine in `SumoSim`, with no engine dependencies beyond math types, so it can be stepped from tests. States are Idle, Moving, GrabStartup, Recovering, Striking, Stunned, Pushing, Grabbed, Driving, Reeling, Falling and Victory.
+- The fight is a state machine in `SumoSim`, with no engine dependencies beyond math types, so it can be stepped from tests. States are Idle, Moving, GrabStartup, Recovering, Recoiling, Striking, Stunned, Pushing, Grabbed, Driving, Reeling, Falling and Victory.
 - The simulation runs in fixed steps of 0.02 seconds. Input is latched between steps, so short presses are not lost.
+- `Tools/FootageCheck` compares the game with the clips, by timing and by side-by-side frames of each exchange, and the `footage-checker` agent runs it after code changes. The clips stay on the owner's machine.
 - `SumoCamera` receives match state and positions, and owns both the scripted intro and the gameplay view.
 - `SumoSim.Impact` reports hits, and `ImpactEffects` and `SumoAudio` respond to it, so effects never touch the rules.
 - `WrestlerView` animates the placeholder puppet procedurally from sim state. Replacing the puppet with a rigged model means changing `WrestlerPuppetBuilder` and this class.
@@ -268,20 +281,19 @@ The automated tests must keep these true. Figures are from the current build.
 | Check | Target | Current |
 |---|---|---|
 | Mirror matches | Neither side favoured | P2 wins 49% to 51% |
-| Grab spam, wins of 100 by rank 0 to 3, then 4 and up | First two rivals allow it, then it fails | 100, 97, 34, 7, then 0 |
-| Rival wins of 100 vs a mid-level bot, ranks 0 to 10 | Rising | 0, 9, 23, 60, 77, 81 |
-| Rival wins of 100 vs a strong bot, ranks 6, 8, 10 | Rising | 30, 35, 53 |
-| Matches that never finish | None | None at any rank. The longest spam match was 4 minutes |
-| Finishing drives per match against grab spam | Common against weak rivals | About 5 to 7 up to rank 2, about 0.4 at rank 3, none above |
+| Grab spam, wins of 100 by rank 0 to 4, then 5 and up | First two rivals allow it, then it fails | 99, 78, 26, 7, 5, then 0 |
+| Rival wins of 100 vs a mid-level bot, ranks 0 to 10 | Rising | 2, 35, 34, 55, 73, 82 |
+| Rival wins of 100 vs a strong bot, ranks 6, 8, 10 | Rising | 29, 44, 53 |
+| Matches that never finish | None | None at any rank. The longest spam match was about 2 minutes |
+| Finishing drives per match against grab spam | Common against weak rivals | About 3 to 4.5 up to rank 2, 0.2 at rank 3, none above |
 
 ## 13. Known gaps and open questions
 
 - **Finishing drive.** It is modelled on the arms-wide pose, whose real meaning is not established. Rivals from rank 3 up usually resist well enough to prevent it, including against timed shoves.
-- **Rival size.** The reference's opponents are much bigger. Scaling was tried at 1.3× and 1.45×, then removed at the owner's request.
+- **Rival size.** Rivals are 1.3 times the player's size. The Mayor is about that much bigger than Link, and Gor Coron is bigger still.
 - **Distance.** 1.75 m is wider than the reference's arm's length.
 - **Round length.** Reference rounds take 9 to 30 seconds. Best-of-three matches here take about 35 to 90 seconds, and a human-paced figure has not been measured.
 - **Slap-only wins.** They work against a passive opponent, in about 11 seconds. A scripted strafe-and-strike player has not beaten a real rival.
-- **Spam matches.** Pure spam still runs long at ranks 2 and 3, averaging 1.5 to 2 minutes.
 - **Sound.** The placeholder sounds are checked as valid audio, but nobody has judged how they sound.
 - **Hardware.** Physical controller input and rumble are unconfirmed.
 - **Art.** The wrestlers are placeholder puppets built from primitives. The arena is "sumo arena" by unForastero (CC0, OpenGameArt).

@@ -9,14 +9,14 @@ Both modes use a camera directly behind the wrestler. This replaces the fixed ca
 
 | Action | P1 | P2 | Gamepad |
 |---|---|---|---|
-| Walk sideways | A / D | J / L | Left stick |
-| Grab, then push or resist | Space | I | South button |
-| Strike | Left Shift | K | West button |
+| Walk sideways | A / D | Left / Right | Left stick |
+| Grab, then push or resist | Space | Up | South button |
+| Strike | Left Shift | Down | West button |
 | Pause | Esc | Esc | Start |
 
 Enter confirms menus. The fighting is modelled on the sumo minigame in The Legend of Zelda: Twilight Princess. Wrestlers turn to face each other automatically, and whoever is nearer the middle walks in to fighting distance, so ground you lose stays lost until you strafe around your opponent. There is no forward or backward control and no dedicated dodge. You sidestep simply by walking sideways.
 
-Walking sideways beats grab: a grab misses if you are walking sideways when it lands. Grab beats strike. Strike beats walking sideways, and reaches further against someone doing it.
+Walking sideways beats grab: a grab misses if you are walking sideways when it lands. Grab beats strike, ducking under the swing before it lands. Two grabs meeting are a draw that throws both apart. Strike beats walking sideways, and reaches further against someone doing it.
 
 Timings are measured from footage of the original fights, and a missed grab stumbles past before turning back. A grab lasts at most 3 seconds. Each attacker press is one shove followed by a 0.7 second cooldown, presses during the cooldown do nothing, and the attacker cannot grab again for 1.2 seconds after a grab ends or misses, so spamming cannot win. The defender can press Grab faster to resist, which slows the shove and drains a hidden struggle meter. A full meter starts a finishing drive that can carry the defender over the rope, an empty one frees them and leaves the attacker recovering, and at the time limit both separate. The round ends only when a wrestler crosses the rope. Strikes also knock the target back, so a round can be won without grabbing at all, though that is harder.
 
@@ -39,4 +39,5 @@ Run play mode tests without `-batchmode`, because screenshots wait for rendered 
 ## Credits
 
 - Arena: "sumo arena" by unForastero, CC0, https://opengameart.org/content/sumo-arena
+- Fonts: Bebas Neue and Barlow Condensed, SIL Open Font License, licences in `Assets/Resources/Fonts`
 - Wrestlers: placeholder puppets built from Unity primitives. To use a real model, replace `WrestlerPuppetBuilder` and the joint posing in `WrestlerView`.
