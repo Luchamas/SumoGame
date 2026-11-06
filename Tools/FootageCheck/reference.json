@@ -1,0 +1,94 @@
+{
+  "metrics": [
+    {
+      "id": "clinch_seconds",
+      "label": "Length of a grab, including any finishing drive",
+      "source": "Gor 93.0-95.9, 103.9-107.0; Bo 67.5-70.75",
+      "status": "enforce",
+      "min": 2.9,
+      "max": 3.2,
+      "tolerance": 0.5,
+      "note": "Mean across rival matches. Escapes pull the mean down."
+    },
+    {
+      "id": "round_seconds",
+      "label": "Length of a round",
+      "source": "Bo 33.5-42.5, 60.5-79; Gor 91.75-121.5",
+      "status": "enforce",
+      "min": 9,
+      "max": 30,
+      "tolerance": 10,
+      "note": "Mean for mid-rank rivals against each other. Humans will differ."
+    },
+    {
+      "id": "drive_seconds",
+      "label": "Arms-wide pose before a ring-out",
+      "source": "Gor 98.75-100.5, 109.25-111, 119.5-121; Bo 36.5-37.5, 72.25-74, 76.66-78.33",
+      "status": "enforce",
+      "min": 1.0,
+      "max": 1.75,
+      "tolerance": 0,
+      "note": "Matched to DriveTime."
+    },
+    {
+      "id": "miss_seconds",
+      "label": "Attacker out of action after a missed grab",
+      "source": "Gor 102.87-103.6",
+      "status": "enforce",
+      "min": 0.5,
+      "max": 0.9,
+      "tolerance": 0,
+      "note": "The miss stumbles on past the target."
+    },
+    {
+      "id": "clash_seconds",
+      "label": "Thrown apart after two grabs meet or a grab ends",
+      "source": "Bo 65.56-66.36, 38.56-39.36, 74.27-75.02",
+      "status": "enforce",
+      "min": 0.65,
+      "max": 0.8,
+      "tolerance": 0.1,
+      "note": "Both recover together."
+    },
+    {
+      "id": "duck_seconds",
+      "label": "Strike starting to the ducking grab landing",
+      "source": "Bo 75.4-76.52",
+      "status": "enforce",
+      "min": 0.87,
+      "max": 1.1,
+      "tolerance": 0.2,
+      "note": "The slap passes overhead, then the grab lands."
+    },
+    {
+      "id": "ready_seconds",
+      "label": "Wait before a round starts",
+      "source": "Bo 31.5-33.5; Gor 89.5-91.5",
+      "status": "gap",
+      "min": 2.0,
+      "max": 2.0,
+      "tolerance": 0.3,
+      "note": "The game is quicker. Spec section 9 asks for little downtime, so this is reported but does not fail."
+    },
+    {
+      "id": "regrab_seconds",
+      "label": "Attacker's wait before grabbing again",
+      "source": "Gor 95.9-96.4, 107.0-107.75",
+      "status": "deliberate",
+      "min": 0.5,
+      "max": 0.75,
+      "tolerance": 0,
+      "note": "Deliberately longer, to stop grab spam."
+    },
+    {
+      "id": "fighting_distance",
+      "label": "Distance between wrestlers in neutral, metres",
+      "source": "Both fights, estimated by eye",
+      "status": "deliberate",
+      "min": 1.1,
+      "max": 1.4,
+      "tolerance": 0,
+      "note": "Widened at the owner's request, as same-size wrestlers looked cramped."
+    }
+  ]
+}
