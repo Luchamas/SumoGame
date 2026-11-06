@@ -88,6 +88,7 @@ namespace SumoGame
         public float GrabReach = 1.4f;
         public float WhiffRecovery = 0.75f;
         public float WhiffStumble = 5f;
+        public float WhiffVeer = 25f;
         public float RecoilTime = 0.7f;
         public float RecoilSpeed = 3.2f;
 
@@ -426,7 +427,7 @@ namespace SumoGame
             if (!inReach || other.IsSidewalking)
             {
                 Recover(self, Rules.WhiffRecovery);
-                self.Knockback = self.LungeDirection * Rules.WhiffStumble;
+                self.Knockback = StumbleDirection(self, other) * Rules.WhiffStumble;
                 Raise(SumoImpact.Whiff);
                 return;
             }
@@ -452,6 +453,22 @@ namespace SumoGame
             // put them over the rope without a single shove.
             self.Position = other.Position - self.Facing * Rules.LockDistance;
             Raise(SumoImpact.Grab);
+        }
+
+        /// <summary>
+        /// A grab that a sidestep slipped veers off away from the sidestepper, so the two end up
+        /// clearly apart rather than brushing past each other.
+        /// </summary>
+        Vector2 StumbleDirection(Fighter self, Fighter other)
+        {
+            var lunge = self.LungeDirection;
+            if (!other.IsSidewalking) return lunge;
+            var toOther = other.Position - self.Position;
+            var side = Mathf.Sign(lunge.x * toOther.y - lunge.y * toOther.x);
+            var radians = -side * Rules.WhiffVeer * Mathf.Deg2Rad;
+            var cos = Mathf.Cos(radians);
+            var sin = Mathf.Sin(radians);
+            return new Vector2(lunge.x * cos - lunge.y * sin, lunge.x * sin + lunge.y * cos);
         }
 
         void StepLock(Fighter attacker, Fighter defender, float dt)
@@ -562,11 +579,12 @@ namespace SumoGame
                     break;
             }
 
+            var before = self.Position.magnitude;
             self.Position += self.Knockback * dt;
             self.Knockback = Vector2.MoveTowards(self.Knockback, Vector2.zero, Rules.KnockbackDecay * dt);
 
             // Stumbling past after a miss stops at the rope, so a dodge is not an instant win.
-            if (thrown) KeepInsideRing(self);
+            if (thrown) KeepInsideRing(self, before);
         }
 
         void Turn(Fighter self, Vector2 target, float dt)
@@ -580,10 +598,14 @@ namespace SumoGame
             self.Facing = new Vector2(f.x * cos - f.y * sin, f.x * sin + f.y * cos).normalized;
         }
 
-        void KeepInsideRing(Fighter self)
+        /// <summary>
+        /// Stops a stumble inside the rope's margin, or where it started if that was already
+        /// further out. It never ends exactly on the rope, where rounding could tip it over.
+        /// </summary>
+        void KeepInsideRing(Fighter self, float before)
         {
-            var limit = Rules.RingRadius - Rules.RingMargin;
-            self.Position = Vector2.ClampMagnitude(self.Position, Mathf.Max(limit, Mathf.Min(self.Position.magnitude, Rules.RingRadius)));
+            var limit = Mathf.Max(Rules.RingRadius - Rules.RingMargin, Mathf.Min(before, Rules.RingRadius - 0.001f));
+            self.Position = Vector2.ClampMagnitude(self.Position, limit);
         }
 
         /// <summary>Circles the opponent and closes to fighting distance automatically.</summary>
@@ -592,7 +614,12 @@ namespace SumoGame
             var right = new Vector2(self.Facing.y, -self.Facing.x);
             var next = self.Position + right * (self.Lateral * Rules.MoveSpeed * dt);
 
-            var gap = Vector2.Distance(self.Position, other.Position) - Rules.EngageDistance;
+            // Walking sideways goes round the opponent on a circle. A straight sidestep would
+            // open the gap a little every frame and keep setting off the walk-in below.
+            var distance = Vector2.Distance(self.Position, other.Position);
+            if (distance > 0.0001f) next = other.Position + (next - other.Position).normalized * distance;
+
+            var gap = distance - Rules.EngageDistance;
             if (gap > 0f && HoldsTheCentre(self, other)) next += self.Facing * Mathf.Min(gap, Rules.MoveSpeed * dt);
 
             // Walking never crosses the rope. Only being shoved does.

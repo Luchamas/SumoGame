@@ -99,6 +99,22 @@ public class SumoSimTests
     }
 
     [Test]
+    public void CirclingLeavesTheOpponentTurningOnTheSpot()
+    {
+        Run(2f, None, None);
+        var distance = Vector2.Distance(p1.Position, p2.Position);
+        var held = p2.Position;
+        for (var t = 0f; t < 3f; t += Dt)
+        {
+            sim.Step(Dt, new FighterInput { Lateral = 1f }, None);
+            Assert.AreEqual(distance, Vector2.Distance(p1.Position, p2.Position), 0.02f, $"the gap changed at {t:0.00}s");
+            Assert.AreNotEqual(FighterState.Moving, p2.State, $"the opponent walked at {t:0.00}s");
+        }
+        Assert.Less(Vector2.Distance(held, p2.Position), 0.01f, "the opponent should only turn");
+        Assert.AreEqual(1f, Vector2.Dot(p2.Facing, (p1.Position - p2.Position).normalized), 0.01f);
+    }
+
+    [Test]
     public void TheSideKeysMoveLeftAndRightOfTheWrestler()
     {
         Run(2f, None, None);
@@ -512,6 +528,23 @@ public class SumoSimTests
         var x = p1.Position.x;
         Run(0.5f, None, None);
         Assert.Greater(p1.Position.x, x + 0.3f);
+    }
+
+    [Test]
+    public void ASidesteppedGrabVeersAwayFromTheSidestepper()
+    {
+        float GapAfterMiss(float veer)
+        {
+            SetUp();
+            sim.Rules.WhiffVeer = veer;
+            WhiffPastP2();
+            Run(0.6f, None, None);
+            return Vector2.Distance(p1.Position, p2.Position);
+        }
+
+        var straight = GapAfterMiss(0f);
+        var veered = GapAfterMiss(new SumoRules().WhiffVeer);
+        Assert.Greater(veered, straight + 0.25f, $"straight {straight:0.00}m, veered {veered:0.00}m");
     }
 
     [Test]

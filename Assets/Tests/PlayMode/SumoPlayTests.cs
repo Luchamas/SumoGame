@@ -347,12 +347,13 @@ public class SumoPlayTests : InputTestFixture
         yield return new WaitForSeconds(0.9f);
     }
 
-    IEnumerator CaptureSequence(string name)
+    // Eight frames, spaced to cover the same span as the footage row in Tools/FootageCheck/run.sh.
+    IEnumerator CaptureSequence(string name, float span = 1.1f)
     {
         for (var i = 0; i < 8; i++)
         {
             yield return Shot($"ex_{name}_{i}");
-            yield return new WaitForSeconds(0.14f);
+            yield return new WaitForSeconds(span / 8f);
         }
     }
 
@@ -375,7 +376,8 @@ public class SumoPlayTests : InputTestFixture
         yield return Hold(Key.DownArrow);
         yield return new WaitUntil(() => game.Sim.Fighters[1].IsStriking);
         yield return Hold(Key.Space);
-        yield return CaptureSequence("strike_vs_grab");
+        // The grab lands about a second after the swing starts, so this row runs longer.
+        yield return CaptureSequence("strike_vs_grab", 1.3f);
         Assert.True(p1.IsLocked, "the grab should land after the swing");
     }
 
