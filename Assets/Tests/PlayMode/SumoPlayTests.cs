@@ -280,28 +280,6 @@ public class SumoPlayTests : InputTestFixture
     }
 
     [UnityTest, Timeout(30000)]
-    public IEnumerator GamepadDrivesP1()
-    {
-        var pad = InputSystem.AddDevice<Gamepad>();
-        yield return StartVersus();
-        yield return WaitForEngage();
-        var p1 = game.Sim.Fighters[0];
-        yield return new WaitUntil(() => p1.State == FighterState.Idle);
-        var y = p1.Position.y;
-
-        AdvanceClock();
-        Set(pad.leftStick, Vector2.left);
-        yield return new WaitUntil(() => Mathf.Abs(p1.Position.y - y) > 0.3f);
-        AdvanceClock();
-        Set(pad.leftStick, Vector2.zero);
-        yield return new WaitUntil(() => p1.State == FighterState.Idle);
-
-        AdvanceClock();
-        Press(pad.buttonWest);
-        yield return new WaitUntil(() => p1.IsStriking);
-    }
-
-    [UnityTest, Timeout(30000)]
     public IEnumerator DKeyMovesRightOnScreen()
     {
         yield return StartVersus();

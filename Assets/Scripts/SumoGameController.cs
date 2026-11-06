@@ -25,23 +25,15 @@ namespace SumoGame
             Grab = keyboard[grab].isPressed,
             Strike = keyboard[strike].isPressed,
         };
-
-        public static FighterInput Read(Gamepad pad) => new FighterInput
-        {
-            Lateral = pad.leftStick.ReadValue().x,
-            Grab = pad.buttonSouth.isPressed,
-            Strike = pad.buttonWest.isPressed,
-        };
     }
 
     public enum GameMode { Singleplayer, Versus }
 
-    /// <summary>Connects keyboard, gamepads, menus, simulation, views and HUD.</summary>
+    /// <summary>Connects keyboard, menus, simulation, views and HUD.</summary>
     public class SumoGameController : MonoBehaviour
     {
         const float FullFieldOfView = 58f;
         const float SplitFieldOfView = 66f;
-        const float StruggleRumble = 0.35f;
         public const float RivalScale = 1.3f;
         const float StrikeHitStop = 0.07f;
         const float DriveHitStop = 0.1f;
@@ -84,8 +76,6 @@ namespace SumoGame
             Menu.Build(this);
             ShowMenu();
         }
-
-        void OnDisable() => SetRumble(0f);
 
         void OnImpact(SumoImpact impact, Vector2 where)
         {
@@ -178,44 +168,35 @@ namespace SumoGame
                 if (!InMenu) SyncCameras(Time.deltaTime);
             }
             Hud.Sync(this);
-            SetRumble(!InMenu && !Paused && Sim.Fighters[0].IsLocked ? StruggleRumble : 0f);
         }
 
         void ReadControls(Keyboard keyboard)
         {
-            var pad = Gamepad.current;
             if (InMenu || Paused)
             {
-                Menu.HandleInput(keyboard, pad);
+                Menu.HandleInput(keyboard);
                 return;
             }
 
             // Latch between fixed steps so a quick tap is never lost at high frame rates.
-            p1Held = ReadPlayer(PlayerKeys.P1, keyboard, 0);
-            p2Held = ReadPlayer(PlayerKeys.P2, keyboard, 1);
+            p1Held = PlayerKeys.P1.Read(keyboard);
+            p2Held = PlayerKeys.P2.Read(keyboard);
             p1Input = Latch(p1Input, p1Held);
             p2Input = Latch(p2Input, p2Held);
 
-            if (keyboard.escapeKey.wasPressedThisFrame || (pad != null && pad.startButton.wasPressedThisFrame))
+            if (keyboard.escapeKey.wasPressedThisFrame)
             {
                 Pause();
                 return;
             }
 
-            if (!keyboard.enterKey.wasPressedThisFrame && !(pad != null && pad.buttonSouth.wasPressedThisFrame)) return;
+            if (!keyboard.enterKey.wasPressedThisFrame) return;
 
             Sim.SkipRoundDelay();
             if (Sim.Phase != MatchPhase.MatchOver) return;
 
             if (Mode == GameMode.Singleplayer) StartSingleplayer();
             else StartVersus();
-        }
-
-        static FighterInput ReadPlayer(PlayerKeys keys, Keyboard keyboard, int index)
-        {
-            var input = keys.Read(keyboard);
-            var pads = Gamepad.all;
-            return index < pads.Count ? Latch(input, PlayerKeys.Read(pads[index])) : input;
         }
 
         static FighterInput Latch(FighterInput held, FighterInput current) => new FighterInput
@@ -272,11 +253,6 @@ namespace SumoGame
         {
             if (fighter.State == FighterState.Stunned && lastState != FighterState.Stunned) view.Shake(0.14f);
             lastState = fighter.State;
-        }
-
-        static void SetRumble(float amount)
-        {
-            foreach (var pad in Gamepad.all) pad.SetMotorSpeeds(amount * 0.5f, amount);
         }
     }
 }

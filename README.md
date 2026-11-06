@@ -5,14 +5,14 @@ Sumo in Unity 6 (6000.3.10f1, URP), built from `spec.md`. Push the other wrestle
 - **Singleplayer:** you against the machine. You fight ten rivals in order, each in a best-of-three match. Losing a match ends the run, beating all ten completes it, and your best run is saved.
 - **Versus:** two players on one keyboard, with a vertical split screen.
 
-Both modes use a camera directly behind the wrestler. This replaces the fixed camera in `spec.md`.
+Both modes use a camera directly behind the wrestler.
 
-| Action | P1 | P2 | Gamepad |
-|---|---|---|---|
-| Walk sideways | A / D | Left / Right | Left stick |
-| Grab, then push or resist | Space | Up | South button |
-| Strike | Left Shift | Down | West button |
-| Pause | Esc | Esc | Start |
+| Action | P1 | P2 |
+|---|---|---|
+| Walk sideways | A / D | Left / Right |
+| Grab, then push or resist | Space | Up |
+| Strike | Left Shift | Down |
+| Pause | Esc | Esc |
 
 Enter confirms menus. The fighting is modelled on the sumo minigame in The Legend of Zelda: Twilight Princess. Wrestlers turn to face each other automatically, and whoever is nearer the middle walks in to fighting distance, so ground you lose stays lost until you strafe around your opponent. There is no forward or backward control and no dedicated dodge. You sidestep simply by walking sideways.
 

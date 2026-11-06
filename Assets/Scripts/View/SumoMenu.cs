@@ -19,11 +19,11 @@ namespace SumoGame
 
         static readonly string[,] ControlsTable =
         {
-            { "", "P1", "P2", "Gamepad" },
-            { "Walk sideways", "A  D", "Left  Right", "Left stick" },
-            { "Grab", "Space", "Up", "A / Cross" },
-            { "Strike", "Left Shift", "Down", "X / Square" },
-            { "Pause", "Esc", "Esc", "Start" },
+            { "", "P1", "P2" },
+            { "Walk sideways", "A  D", "Left  Right" },
+            { "Grab", "Space", "Up" },
+            { "Strike", "Left Shift", "Down" },
+            { "Pause", "Esc", "Esc" },
         };
 
         const string CreditsText =
@@ -110,7 +110,7 @@ namespace SumoGame
                     var cell = UiKit.Text("Cell", page.Root.transform, 40, TextAnchor.MiddleCenter, UiKit.Paper);
                     cell.text = ControlsTable[row, column];
                     if (row == 0 || column == 0) cell.font = UiKit.Display;
-                    var offset = new Vector2((column - 1.5f) * columnWidth, -row * rowHeight);
+                    var offset = new Vector2((column - 1f) * columnWidth, -row * rowHeight);
                     UiKit.Place(cell.rectTransform, new Vector2(0.5f, 0.72f), new Vector2(columnWidth, rowHeight), offset);
                 }
             }
@@ -205,7 +205,7 @@ namespace SumoGame
             }
         }
 
-        public void HandleInput(Keyboard keyboard, Gamepad pad)
+        public void HandleInput(Keyboard keyboard)
         {
             if (current == null) return;
 
@@ -216,16 +216,6 @@ namespace SumoGame
 
             var confirm = keyboard.enterKey.wasPressedThisFrame;
             var back = keyboard.escapeKey.wasPressedThisFrame;
-
-            if (pad != null)
-            {
-                up |= pad.dpad.up.wasPressedThisFrame;
-                down |= pad.dpad.down.wasPressedThisFrame;
-                left |= pad.dpad.left.wasPressedThisFrame;
-                right |= pad.dpad.right.wasPressedThisFrame;
-                confirm |= pad.buttonSouth.wasPressedThisFrame;
-                back |= pad.buttonEast.wasPressedThisFrame;
-            }
 
             var count = current.Items.Count;
             if (up) Select((selected + count - 1) % count);
