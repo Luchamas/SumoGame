@@ -21,7 +21,13 @@ public static class SumoSceneBuilder
     static Material clay, wood, plaster, cushion, roof, rope, line;
 
     [MenuItem("Sumo/Rebuild Scene")]
-    public static void Build()
+    public static void Build() => Build(lowPoly: true);
+
+    /// <summary>Backup: the older wrestlers made from Unity primitives.</summary>
+    [MenuItem("Sumo/Rebuild Scene (Primitive Wrestlers)")]
+    public static void BuildWithPrimitiveWrestlers() => Build(lowPoly: false);
+
+    static void Build(bool lowPoly)
     {
         Directory.CreateDirectory(MaterialFolder);
         Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
@@ -34,15 +40,19 @@ public static class SumoSceneBuilder
         BuildRing(rules.RingRadius);
         BuildLighting();
 
-        var skin = Lit("Skin", new Color(0.87f, 0.64f, 0.5f), 0.55f);
-        var hair = Lit("Hair", new Color(0.06f, 0.05f, 0.05f), 0.6f);
-        var eye = Lit("Eye", new Color(0.03f, 0.03f, 0.03f), 0.8f);
-        var red = Lit("MawashiRed", new Color(0.78f, 0.13f, 0.11f), 0.35f);
-        var blue = Lit("MawashiBlue", new Color(0.12f, 0.3f, 0.75f), 0.35f);
+        // Flat facets catch glare from glossy materials, so the low poly wrestlers are kept matte.
+        var gloss = lowPoly ? 0.4f : 1f;
+        var skin = Lit("Skin", new Color(0.87f, 0.64f, 0.5f), 0.55f * gloss);
+        var hair = Lit("Hair", new Color(0.06f, 0.05f, 0.05f), 0.6f * gloss);
+        var eye = Lit("Eye", new Color(0.03f, 0.03f, 0.03f), 0.8f * gloss);
+        var red = Lit("MawashiRed", new Color(0.78f, 0.13f, 0.11f), 0.35f * gloss);
+        var blue = Lit("MawashiBlue", new Color(0.12f, 0.3f, 0.75f), 0.35f * gloss);
 
         var wrestlers = new GameObject("Wrestlers").transform;
-        var p1 = WrestlerPuppetBuilder.Build("P1", wrestlers, new WrestlerPuppetBuilder.Palette { Skin = skin, Hair = hair, Eye = eye, Mawashi = red });
-        var p2 = WrestlerPuppetBuilder.Build("P2", wrestlers, new WrestlerPuppetBuilder.Palette { Skin = skin, Hair = hair, Eye = eye, Mawashi = blue });
+        System.Func<string, Transform, WrestlerPuppetBuilder.Palette, WrestlerView> wrestler =
+            lowPoly ? LowPolyWrestlerBuilder.Build : WrestlerPuppetBuilder.Build;
+        var p1 = wrestler("P1", wrestlers, new WrestlerPuppetBuilder.Palette { Skin = skin, Hair = hair, Eye = eye, Mawashi = red });
+        var p2 = wrestler("P2", wrestlers, new WrestlerPuppetBuilder.Palette { Skin = skin, Hair = hair, Eye = eye, Mawashi = blue });
         p1.RingRadius = p2.RingRadius = rules.RingRadius;
         p1.transform.SetPositionAndRotation(new Vector3(-rules.StartDistance * 0.5f, 0f, 0f), Quaternion.LookRotation(Vector3.right));
         p2.transform.SetPositionAndRotation(new Vector3(rules.StartDistance * 0.5f, 0f, 0f), Quaternion.LookRotation(Vector3.left));
@@ -273,5 +283,9 @@ public static class SumoSceneBuilder
         spot.intensity = 90f;
         spot.color = new Color(1f, 0.95f, 0.86f);
         spot.shadows = LightShadows.Soft;
+        // Extra bias stops flat shaded facets from shadowing themselves in stripes.
+        spot.gameObject.AddComponent<UniversalAdditionalLightData>().usePipelineSettings = false;
+        spot.shadowBias = 0.3f;
+        spot.shadowNormalBias = 1.2f;
     }
 }
