@@ -6,8 +6,8 @@ namespace SumoGame
     /// <summary>Everything drawn over the fight. The struggle stays hidden, as the wrestlers show it.</summary>
     public class SumoHud : MonoBehaviour
     {
-        static readonly Color P1Color = new Color(1f, 0.38f, 0.32f);
-        static readonly Color P2Color = new Color(0.42f, 0.66f, 1f);
+        internal static readonly Color P1Color = new Color(1f, 0.38f, 0.32f);
+        internal static readonly Color P2Color = new Color(0.42f, 0.66f, 1f);
         static readonly Color EmptyPip = new Color(1f, 1f, 1f, 0.18f);
 
         const int MaxPips = 3;
@@ -52,13 +52,13 @@ namespace SumoGame
         static string PromptFor(SumoSim sim, Fighter self, string left, string right, string grab, string strike)
         {
             if (sim.Phase != MatchPhase.Fighting) return "";
-            if (self.IsLocked) return $"{grab}: {(self.State == FighterState.Pushing ? "Push" : "Resist")}";
+            if (self.IsLocked) return $"{grab}: {(self.State == FighterState.Pushing ? "Empurrar" : "Resistir")}";
 
             var free = self.State == FighterState.Idle || self.State == FighterState.Moving;
             if (!free) return "";
 
-            var grabPrompt = self.RegrabCooldown > 0f ? "" : $"{grab}: Grab     ";
-            return $"< {left}   {right} >     {grabPrompt}{strike}: Strike";
+            var grabPrompt = self.RegrabCooldown > 0f ? "" : $"{grab}: Agarrar     ";
+            return $"< {left}   {right} >     {grabPrompt}{strike}: Golpear";
         }
 
         UiKit.Banner BuildLabel(Color color, float side)
@@ -89,15 +89,15 @@ namespace SumoGame
             var single = game.Mode == GameMode.Singleplayer;
 
             divider.SetActive(!single);
-            p1Label.Set(single ? $"YOU   Wins {game.Run.Wins}   Best {Mathf.Max(GameSettings.BestRun, game.Run.Wins)}" : "P1");
-            p2Label.Set(single ? game.Run.Rival.Name.ToUpperInvariant() : "P2");
+            p1Label.Set(single ? $"VOCÊ   Vitórias {game.Run.Wins}   Recorde {Mathf.Max(GameSettings.BestRun, game.Run.Wins)}" : "J1");
+            p2Label.Set(single ? game.Run.Rival.Name.ToUpperInvariant() : "J2");
 
             SyncPips(p1Pips, sim.Rules.RoundsToWin, sim.Fighters[0].Score, P1Color);
             SyncPips(p2Pips, sim.Rules.RoundsToWin, sim.Fighters[1].Score, P2Color);
             call.Set(game.Paused ? "" : CallFor(game));
             p1Prompt.MoveTo(new Vector2(single ? 0.5f : 0.25f, 0.06f));
-            p1Prompt.Set(game.Paused ? "" : PromptFor(sim, sim.Fighters[0], "A", "D", "Space", "Shift"));
-            p2Prompt.Set(game.Paused || single ? "" : PromptFor(sim, sim.Fighters[1], "Left", "Right", "Up", "Down"));
+            p1Prompt.Set(game.Paused ? "" : PromptFor(sim, sim.Fighters[0], "A", "D", "Espaço", "Shift"));
+            p2Prompt.Set(game.Paused || single ? "" : PromptFor(sim, sim.Fighters[1], "Esquerda", "Direita", "Cima", "Baixo"));
         }
 
         static void SyncPips(Image[] pips, int count, int score, Color color)
@@ -113,23 +113,23 @@ namespace SumoGame
         {
             var sim = game.Sim;
             var single = game.Mode == GameMode.Singleplayer;
-            var hakkeyoi = single ? $"HAKKEYOI...\n<size=52>VS {game.Run.Rival.Name.ToUpperInvariant()}</size>" : "HAKKEYOI...";
+            var ready = single ? $"PREPAREM-SE...\n<size=52>VS {game.Run.Rival.Name.ToUpperInvariant()}</size>" : "PREPAREM-SE...";
             switch (sim.Phase)
             {
                 case MatchPhase.Intro:
-                    return sim.PhaseTime >= PromptTime ? hakkeyoi : "";
+                    return sim.PhaseTime >= PromptTime ? ready : "";
                 case MatchPhase.Countdown:
-                    return hakkeyoi;
+                    return ready;
                 case MatchPhase.Fighting:
-                    return sim.PhaseTime < 0.7f ? "NOKOTTA!" : "";
+                    return sim.PhaseTime < 0.7f ? "LUTEM!" : "";
                 case MatchPhase.RoundOver:
-                    if (single) return sim.RoundWinner == 0 ? "YOU TAKE THE ROUND" : "YOU LOSE THE ROUND";
-                    return $"P{sim.RoundWinner + 1} TAKES THE ROUND";
+                    if (single) return sim.RoundWinner == 0 ? "VOCÊ VENCEU A RODADA" : "VOCÊ PERDEU A RODADA";
+                    return $"J{sim.RoundWinner + 1} VENCEU A RODADA";
                 case MatchPhase.MatchOver:
-                    if (!single) return $"P{sim.MatchWinner + 1} IS YOKOZUNA!\n<size=46>ENTER TO REMATCH     ESC FOR MENU</size>";
-                    if (game.Run.Complete) return "YOU ARE YOKOZUNA!\n<size=46>EVERY RIVAL DEFEATED\nENTER FOR A NEW RUN     ESC FOR MENU</size>";
-                    var best = game.NewBest ? "NEW BEST!" : $"BEST {GameSettings.BestRun}";
-                    return $"RUN OVER\n<size=46>{game.Run.Wins} WINS     {best}\nENTER TO TRY AGAIN     ESC FOR MENU</size>";
+                    if (!single) return $"J{sim.MatchWinner + 1} VENCEU A PARTIDA!\n<size=46>ENTER PARA REVANCHE     ESC PARA O MENU</size>";
+                    if (game.Run.Complete) return "VOCÊ É O CAMPEÃO!\n<size=46>TODOS OS RIVAIS DERROTADOS\nENTER PARA UMA NOVA CAMPANHA     ESC PARA O MENU</size>";
+                    var best = game.NewBest ? "NOVO RECORDE!" : $"RECORDE {GameSettings.BestRun}";
+                    return $"FIM DA CAMPANHA\n<size=46>{game.Run.Wins} {(game.Run.Wins == 1 ? "VITÓRIA" : "VITÓRIAS")}     {best}\nENTER PARA TENTAR DE NOVO     ESC PARA O MENU</size>";
                 default:
                     return "";
             }

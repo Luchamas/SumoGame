@@ -3,18 +3,28 @@ using UnityEngine;
 
 namespace SumoGame
 {
-    /// <summary>Placeholder sound effects, synthesized at start-up so no audio files are needed.</summary>
+    /// <summary>Fight sounds synthesized at start-up, the recorded drum that opens each match, and the music.</summary>
     public class SumoAudio : MonoBehaviour
     {
         const int SampleRate = 44100;
         const float ClapPitch = 1900f;
+        const float MusicVolume = 0.6f;
 
         readonly Dictionary<SumoImpact, AudioClip> clips = new Dictionary<SumoImpact, AudioClip>();
         AudioClip clap;
+        AudioClip matchStart;
+        AudioClip menuMusic;
+        AudioClip[] fightMusic;
+        AudioClip chosenFight;
         AudioSource source;
+        AudioSource music;
 
-        void Awake()
+        void Awake() => Setup();
+
+        /// <summary>Also runs on first use, because the game may ask for music before this Awake.</summary>
+        void Setup()
         {
+            if (source != null) return;
             source = gameObject.AddComponent<AudioSource>();
             source.playOnAwake = false;
             source.spatialBlend = 0f;
@@ -22,11 +32,67 @@ namespace SumoGame
             foreach (SumoImpact impact in System.Enum.GetValues(typeof(SumoImpact)))
                 clips[impact] = ToClip(impact.ToString(), Synthesize(impact));
             clap = ToClip("Clap", Tone(0.09f, ClapPitch, 0.5f, 0.6f, 90f));
+            matchStart = Resources.Load<AudioClip>("Audio/MatchStartDrum");
+
+            music = gameObject.AddComponent<AudioSource>();
+            music.playOnAwake = false;
+            music.spatialBlend = 0f;
+            music.loop = true;
+            music.volume = MusicVolume;
+            menuMusic = Resources.Load<AudioClip>("Audio/Music/Pink");
+            fightMusic = new[] { Resources.Load<AudioClip>("Audio/Music/VioletTactics"), Resources.Load<AudioClip>("Audio/Music/PetalDance") };
         }
 
         public void Play(SumoImpact impact) => source.PlayOneShot(clips[impact]);
 
         public void PlayClap() => source.PlayOneShot(clap);
+
+        public void PlayMatchStart()
+        {
+            Setup();
+            source.PlayOneShot(matchStart);
+        }
+
+        public void PlayMenuMusic()
+        {
+            Setup();
+            if (music.isPlaying && music.clip == menuMusic) return;
+            PlayMusic(menuMusic);
+        }
+
+        /// <summary>Picks one of the fight tracks at random for the coming match. It plays once the fight starts.</summary>
+        public void ChooseFightMusic()
+        {
+            Setup();
+            chosenFight = fightMusic[Random.Range(0, fightMusic.Length)];
+        }
+
+        public void PlayFightMusic()
+        {
+            Setup();
+            PlayMusic(chosenFight != null ? chosenFight : fightMusic[0]);
+        }
+
+        public void StopMusic()
+        {
+            Setup();
+            music.Stop();
+        }
+
+        public void PauseMusic(bool paused)
+        {
+            Setup();
+            if (paused) music.Pause();
+            else music.UnPause();
+        }
+
+        public AudioClip CurrentMusic => music != null && music.isPlaying ? music.clip : null;
+
+        void PlayMusic(AudioClip clip)
+        {
+            music.clip = clip;
+            music.Play();
+        }
 
         static AudioClip ToClip(string name, float[] samples)
         {

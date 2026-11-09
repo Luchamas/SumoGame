@@ -366,6 +366,14 @@ public class SumoSimTests
     }
 
     [Test]
+    public void MatchStartDrumShipsWithTheGame()
+    {
+        var drum = Resources.Load<AudioClip>("Audio/MatchStartDrum");
+        Assert.IsNotNull(drum, "Assets/Resources/Audio/MatchStartDrum.ogg is missing");
+        Assert.That(drum.length, Is.InRange(1f, 2f));
+    }
+
+    [Test]
     public void PushesCarryFurtherInALongRound()
     {
         Lock();

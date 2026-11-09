@@ -65,6 +65,7 @@ namespace SumoGame
         FighterInput p1Held, p2Held;
         FighterState p1State, p2State;
         MatchPhase lastPhase;
+        bool fightMusicStarted;
         float hitStop;
 
         void Awake()
@@ -96,6 +97,7 @@ namespace SumoGame
             InMenu = true;
             Paused = false;
             Sim.StartMatch();
+            Sounds.PlayMenuMusic();
             P1Camera.SetView(true, FullView, FullFieldOfView);
             P2Camera.SetView(false, FullView, FullFieldOfView);
             P1Camera.ShowWideShot();
@@ -119,26 +121,37 @@ namespace SumoGame
             rules.RoundsToWin = GameSettings.VersusRounds;
             Run = null;
             P2View.transform.localScale = Vector3.one;
-            Sim.StartMatch();
+            StartMatch();
             BeginPlay(LeftView, SplitFieldOfView, true);
         }
 
         public void Resume()
         {
             Paused = false;
+            Sounds.PauseMusic(false);
             Menu.Close();
         }
 
         void Pause()
         {
             Paused = true;
+            Sounds.PauseMusic(true);
             Menu.OpenPause();
         }
 
         void NextBotFight()
         {
             bot = new SumoBot(Run.Rival, ++botSeed);
+            StartMatch();
+        }
+
+        void StartMatch()
+        {
             Sim.StartMatch();
+            Sounds.StopMusic();
+            Sounds.ChooseFightMusic();
+            fightMusicStarted = false;
+            Sounds.PlayMatchStart();
         }
 
         void BeginPlay(Rect p1Viewport, float fieldOfView, bool split)
@@ -233,7 +246,13 @@ namespace SumoGame
             lastPhase = Sim.Phase;
 
             if (Sim.Phase == MatchPhase.Countdown) SyncCameras(0f);
-            if (Sim.Phase == MatchPhase.Fighting) Sounds.PlayClap();
+            if (Sim.Phase == MatchPhase.Fighting)
+            {
+                Sounds.PlayClap();
+                if (!fightMusicStarted) Sounds.PlayFightMusic();
+                fightMusicStarted = true;
+            }
+            if (Sim.Phase == MatchPhase.MatchOver) Sounds.StopMusic();
             if (Sim.Phase != MatchPhase.MatchOver || Mode != GameMode.Singleplayer) return;
 
             if (Sim.MatchWinner == 0) Run.RecordWin();

@@ -125,8 +125,8 @@ public class SumoPlayTests : InputTestFixture
         yield return new WaitForSeconds(0.3f);
         yield return Shot("01_title");
 
-        Assert.AreEqual("Singleplayer", game.Menu.SelectedLabel);
-        foreach (var expected in new[] { "Versus", "Settings", "Controls", "Credits", "Singleplayer" })
+        Assert.AreEqual("Um jogador", game.Menu.SelectedLabel);
+        foreach (var expected in new[] { "Versus", "Configurações", "Controles", "Créditos", "Um jogador" })
         {
             yield return Tap(Key.DownArrow);
             Assert.AreEqual(expected, game.Menu.SelectedLabel);
@@ -172,13 +172,13 @@ public class SumoPlayTests : InputTestFixture
         yield return LoadGame();
         yield return null;
 
-        var credits = System.Array.Find(Object.FindObjectsByType<Text>(FindObjectsSortMode.None), t => t.text == "Credits");
+        var credits = System.Array.Find(Object.FindObjectsByType<Text>(FindObjectsSortMode.None), t => t.text == "Créditos");
         Assert.NotNull(credits);
         var position = RectTransformUtility.WorldToScreenPoint(null, credits.rectTransform.position);
 
         AdvanceClock();
         Set(mouse.position, position);
-        yield return new WaitUntil(() => game.Menu.SelectedLabel == "Credits");
+        yield return new WaitUntil(() => game.Menu.SelectedLabel == "Créditos");
 
         AdvanceClock();
         Press(mouse.leftButton);
@@ -187,6 +187,7 @@ public class SumoPlayTests : InputTestFixture
         AdvanceClock();
         Release(mouse.leftButton);
         yield return new WaitUntil(() => game.Menu.CurrentPage == "Credits");
+        yield return Shot("03b_credits");
     }
 
     [UnityTest, Timeout(20000)]
@@ -198,7 +199,7 @@ public class SumoPlayTests : InputTestFixture
         yield return Tap(Key.Enter);
         yield return Tap(Key.S);
         yield return Tap(Key.S);
-        Assert.That(game.Menu.SelectedLabel, Does.StartWith("Camera shake"));
+        Assert.That(game.Menu.SelectedLabel, Does.StartWith("Tremor da câmera"));
 
         var before = GameSettings.CameraShake;
         yield return Tap(Key.Enter);
@@ -434,9 +435,11 @@ public class SumoPlayTests : InputTestFixture
     {
         yield return LoadGame();
         var rounds = GameSettings.VersusRounds;
+        Assert.AreEqual("Pink", game.Sounds.CurrentMusic?.name, "the title plays the menu music");
         yield return Tap(Key.S);
         yield return Tap(Key.Enter);
         yield return new WaitForSeconds(0.2f);
+        Assert.IsNull(game.Sounds.CurrentMusic, "fight music waits for the fight to start");
 
         var left = game.P1Camera.GetComponent<Camera>();
         var right = game.P2Camera.GetComponent<Camera>();
@@ -445,9 +448,15 @@ public class SumoPlayTests : InputTestFixture
         Assert.AreEqual(new Rect(0.5f, 0f, 0.5f, 1f), right.rect);
 
         var sim = game.Sim;
+        string track = null;
         while (sim.Phase != MatchPhase.MatchOver)
         {
             yield return new WaitUntil(() => sim.Phase == MatchPhase.Fighting);
+            yield return new WaitForFixedUpdate();
+            var playing = game.Sounds.CurrentMusic?.name;
+            Assert.That(playing, Is.EqualTo("VioletTactics").Or.EqualTo("PetalDance"), "a fight track plays once the fight starts");
+            if (track == null) track = playing;
+            Assert.AreEqual(track, playing, "the same track carries on through every round of the match");
             var score = sim.Fighters[0].Score;
             while (sim.Fighters[0].Score == score)
             {
@@ -469,6 +478,8 @@ public class SumoPlayTests : InputTestFixture
 
         Assert.AreEqual(0, sim.MatchWinner);
         Assert.AreEqual(rounds, sim.Fighters[0].Score);
+        yield return new WaitForFixedUpdate();
+        Assert.IsNull(game.Sounds.CurrentMusic, "the music stops once the match has a winner");
         yield return Tap(Key.Enter);
         Assert.AreEqual(MatchPhase.Intro, sim.Phase);
         Assert.AreEqual(0, sim.Fighters[0].Score);
